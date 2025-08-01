@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login & Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* deep blue-green gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #e0e6e9;
+        }
+
+        .container {
+            width: 350px;
+            background: linear-gradient(145deg, #1c2733, #26374b);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .form-toggle {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-toggle button {
+            margin: 0 10px;
+            background: linear-gradient(90deg, #56ccf2, #2f80ed); /* bright blue gradient */
+            border: none;
+            color: white;
+            padding: 8px 22px;
+            margin: 10px 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.4s ease;
+        }
+
+        .form-toggle button:hover {
+            background: linear-gradient(90deg, #2f80ed, #56ccf2);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #d0d7de;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #33475b, #22303c);
+            color: #cbd5e1;
+            font-size: 14px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 8px 2px #2f80ed;
+            background: linear-gradient(145deg, #3a5c82, #2b4467);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #56ccf2, #2f80ed);
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(43, 128, 237, 0.7);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            box-shadow: 0 8px 30px rgba(86, 204, 242, 0.9);
+            transform: translateY(-3px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="form-toggle">
+        <button onclick="showForm('login')">Login</button>
+        <button onclick="showForm('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+        <h2>Login</h2>
+        <form id="loginFormElement">
+            <div class="form-group">
+                <label for="loginEmail">Username</label>
+                <input type="text" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" class="hidden">
+        <h2>Register</h2>
+        <form id="registerFormElement">
+            <div class="form-group">
+                <label for="registerUsername">Username</label>
+                <input type="text" id="registerUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="registerRole">Role</label>
+                <select id="registerRole" required>
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showForm(formType) {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById(formType + 'Form').classList.remove('hidden');
+    }
+
+    // LOGIN AJAX
+    document.getElementById('loginFormElement').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('http://localhost:8080/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || 'Login failed');
+                return;
+            }
+
+            localStorage.setItem('token', data.token); // Optional: store token
+            alert('Login successful!');
+            window.location.href = "pages/dashboard.html";
+
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('An error occurred during login');
+        }
+    });
+
+    // REGISTER AJAX
+    document.getElementById('registerFormElement').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const role = document.getElementById('registerRole').value;
+
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username, password, role })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || 'Registration failed');
+                return;
+            }
+
+            alert('Registration successful!');
+            showForm('login');
+
+        } catch (error) {
+            console.error('Register error:', error);
+            alert('An error occurred during registration');
+        }
+    });
+
+</script>
+
+</body>
+</html>
